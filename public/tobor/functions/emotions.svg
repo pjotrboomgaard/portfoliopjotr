@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Tobor head -->
+  <ellipse cx="32" cy="14" rx="10" ry="6"/>
+  <path d="M22 18 L18 50 L46 50 L42 18 Z"/>
+  <!-- eyes (curved = emotion) -->
+  <path d="M25 27 Q27 29 30 27"/>
+  <path d="M34 27 Q37 29 40 27"/>
+  <!-- nose -->
+  <circle cx="32" cy="34" r="2"/>
+  <!-- smile -->
+  <path d="M26 42 Q32 48 38 42"/>
+  <!-- cheek matrices (two squares) -->
+  <rect x="14" y="36" width="6" height="6" rx="0.5"/>
+  <rect x="44" y="36" width="6" height="6" rx="0.5"/>
+  <line x1="16" y1="38" x2="20" y2="38"/>
+  <line x1="16" y1="40" x2="20" y2="40"/>
+  <line x1="46" y1="38" x2="50" y2="38"/>
+  <line x1="46" y1="40" x2="50" y2="40"/>
+</svg>

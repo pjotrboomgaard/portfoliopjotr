@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Tobor head: dome -->
+  <ellipse cx="32" cy="14" rx="10" ry="6"/>
+  <!-- cone body -->
+  <path d="M22 18 L18 50 L46 50 L42 18 Z"/>
+  <!-- eyes (closed / meditative) -->
+  <line x1="26" y1="28" x2="30" y2="28"/>
+  <line x1="34" y1="28" x2="38" y2="28"/>
+  <!-- nose -->
+  <circle cx="32" cy="34" r="2"/>
+  <!-- mouth (calm line) -->
+  <line x1="28" y1="44" x2="36" y2="44"/>
+  <!-- spiral / breath -->
+  <path d="M32 52 Q32 48 36 46 Q40 44 40 40 Q40 36 36 34" stroke-dasharray="2 1"/>
+</svg>

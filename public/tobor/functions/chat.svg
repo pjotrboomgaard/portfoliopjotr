@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none" stroke="#000" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+  <!-- Tobor head -->
+  <ellipse cx="32" cy="16" rx="10" ry="6"/>
+  <path d="M22 20 L18 48 L46 48 L42 20 Z"/>
+  <!-- eyes -->
+  <rect x="25" y="27" width="6" height="4" rx="1"/>
+  <rect x="33" y="27" width="6" height="4" rx="1"/>
+  <!-- nose -->
+  <circle cx="32" cy="34" r="2"/>
+  <!-- mouth -->
+  <line x1="28" y1="42" x2="36" y2="42"/>
+  <!-- speech bubble -->
+  <path d="M44 18 L54 18 L54 32 L48 32 L46 36 L44 32 Z"/>
+  <line x1="48" y1="22" x2="52" y2="22"/>
+  <line x1="48" y1="26" x2="50" y2="26"/>
+</svg>

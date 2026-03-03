@@ -77,7 +77,7 @@ export const projects: Project[] = [
   },
   {
     id: "tobor",
-    title: "Tobor",
+    title: "Tobor (film)",
     year: "2024",
     subtitle: "Documentaire",
     wip: true,
@@ -93,8 +93,8 @@ export const projects: Project[] = [
       "Regisseur en maker. Concept en verhaallijn ontwikkeld.",
     links: [
       {
-        label: "Bekijk Tobor (work in progress)",
-        labelEn: "Watch Tobor (work in progress)",
+        label: "Bekijk op YouTube",
+        labelEn: "Watch on YouTube",
         url: "https://youtu.be/TzMmpr1S1xA",
       },
       {
@@ -151,33 +151,29 @@ export const projects: Project[] = [
   },
   {
     id: "tobor-ai",
-    title: "Tobor AI",
+    title: "Tobor (robot)",
     year: "2025",
     subtitle: "Robot & AI-systeem",
     thumbnail: "/toborhead3.png",
     image: "/toborhead3.png",
     descriptions: [
-      "Tobor AI is het AI-systeem en de mensgrote robot die ik samen met mijn moeder heb herbouwd — dezelfde robot die zij als kind samen met haar vader maakte. Voor haar was Tobor destijds een metgezel en een manier om verbinding te vinden. Veertig jaar later bouwen we hem opnieuw, nu uitgerust met artificiële intelligentie: de robot kan spreken, luisteren, bewegen en reageren.",
-      "Ik ontwikkelde het AI-systeem zelf en ben verantwoordelijk voor de technische integratie en doorontwikkeling voor live publieksinteractie. De robot fungeert als spiegel van onze familiedynamiek en onderzoekt wat er gebeurt wanneer een machine emotionele ruimte inneemt die mensen moeilijk kunnen dragen.",
-      "Tobor is samen met mijn moeder gebouwd: zij als beeldend kunstenaar en mede-bouwer, ik als maker van de film en het AI-systeem. Het herbouwen doen we ook met mijn opa en oma; het wordt een poging om ons emotioneel in dezelfde ruimte te brengen.",
-      "De robot draagt persoonlijkheden van mijn opa, oma, mijn moeder en mij. Die zijn gevoed met vragenlijsten en geüploade informatie uit dagboeken, zodat Tobor niet alleen technisch maar ook relationeel een verbindend element is binnen onze familiegeschiedenis.",
+      "Twee jaar hebben mijn moeder en ik samen aan Tobor gewerkt: onze technische kennis gecombineerd, voortbouwend op wat zij veertig jaar geleden met mijn opa was begonnen. Het hoofd is nog het originele, veertig jaar oud, een soort relikwie dat nu weer tot leven is gebracht. Het resultaat is een veelzijdige robot met een persoonlijkheid gebaseerd op data van verschillende familieleden; Tobor is ons nieuwe familielid.",
+      "De robot verkent nieuwe vraagstukken van deze tijd: technische AI-systemen vermengd met data uit intieme bronnen, zoals dagboeken en persoonlijke gesprekken. Naast meditaties en dansen heeft hij vooral als familietherapeut gediend; de technische middelen zijn daarop afgestemd. Met behulp van AI gebouwd en tegelijk een ultra-persoonlijk familie-object; een voorbode van huidige ontwikkelingen in onze maatschappij. Tobor blijft evolueren: we blijven sleutelen en steeds nieuwe dingen toevoegen. Hij kan steeds meer, zodat wij samen steeds meer kunnen.",
     ],
     cvInfo:
       "Technische realisatie en doorontwikkeling van de robot en het AI-systeem. Ontwikkeling van het geïntegreerde AI-systeem in het robotlichaam. Artistiek concept en live interactie.",
     links: [
       {
-        label: "GitHub (TOBOR-AI)",
-        labelEn: "GitHub (TOBOR-AI)",
+        label: "GitHub (Tobor)",
+        labelEn: "GitHub (Tobor)",
         url: "https://github.com/pjotrboomgaard/TOBOR-AI",
       },
     ],
     en: {
       subtitle: "Robot & AI system",
       descriptions: [
-        "Tobor AI is the AI system and human-sized robot I rebuilt together with my mother — the same robot she built with her father as a child. For her, Tobor was then a companion and a way to find connection. Forty years later we rebuild him, now equipped with artificial intelligence: the robot can speak, listen, move and respond.",
-        "I developed the AI system myself and am responsible for technical integration and further development for live audience interaction. The robot acts as a mirror of our family dynamics and explores what happens when a machine takes up emotional space that people find hard to carry.",
-        "Tobor was built together with my mother: she as visual artist and co-builder, I as maker of the film and the AI system. We also rebuild Tobor with my grandfather and grandmother; it becomes an attempt to bring us emotionally into the same space.",
-        "The robot carries personalities of my grandfather, grandmother, my mother and me. These have been fed with questionnaires and uploaded information from diaries, so that Tobor is not only technically but also relationally a connecting element within our family history.",
+        "For two years my mother and I worked on Tobor together: combining our technical skills and building on what she had started with my grandfather forty years ago. The head is still the original, forty years old, a kind of relic now brought back to life. The result is a versatile robot with a personality based on data from different family members; Tobor is our new family member.",
+        "The robot explores new questions of our time: technical AI systems mixed with data from intimate sources, such as diaries and personal conversations. Besides meditations and dancing he has mainly served as a family therapist; the technical means were built for that purpose. Built with the help of AI and at the same time an ultra-personal family object; a forerunner of current developments in our society. Tobor keeps evolving: we keep tinkering and adding new things. He can do more and more, so that together we can do more and more.",
       ],
       cvInfo:
         "Technical realization and further development of the robot and AI system. Development of the integrated AI system in the robot body. Artistic concept and live interaction.",

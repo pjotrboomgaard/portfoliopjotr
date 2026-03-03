@@ -15,6 +15,7 @@ const HomeGrid: React.FC<HomeGridProps> = ({ onNavigate }) => {
           <button
             key={p.id}
             className="grid-card"
+            data-project-id={p.id}
             onClick={() => onNavigate(p.id)}
           >
             <div className="grid-card-thumb">

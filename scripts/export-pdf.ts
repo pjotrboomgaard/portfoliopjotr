@@ -1,6 +1,6 @@
 /**
- * Export portfolio to a single PDF with working links.
- * Run: npx tsx scripts/export-pdf.ts
+ * Export portfolio to a single PDF without working hyperlinks (links shown as plain text).
+ * Run: npm run pdf   or   npx tsx scripts/export-pdf.ts
  * Output: dist/portfolio-pjotr-boomgaard.pdf
  */
 
@@ -36,22 +36,11 @@ function buildHtml(): string {
       const linkList =
         p.links && p.links.length > 0
           ? `<p class="links">${p.links
-              .map(
-                (l) =>
-                  `<a href="${escapeHtml(l.url)}" target="_blank" rel="noopener">${escapeHtml(l.label)}</a>`
-              )
+              .map((l) => `<span>${escapeHtml(l.label)}</span>`)
               .join(" · ")}</p>`
           : "";
       const videoLink = p.videoUrl
-        ? (() => {
-            const id =
-              p.videoUrl.match(/embed\/([^/?]+)/)?.[1] ||
-              p.videoUrl.match(/youtu\.be\/([^/?]+)/)?.[1];
-            const watchUrl = id
-              ? `https://www.youtube.com/watch?v=${id}`
-              : p.videoUrl;
-            return `<p class="links"><a href="${escapeHtml(watchUrl)}" target="_blank" rel="noopener">Bekijk op YouTube</a></p>`;
-          })()
+        ? `<p class="links"><span>Bekijk op YouTube</span></p>`
         : "";
       return `
         <section class="project">
@@ -71,7 +60,6 @@ function buildHtml(): string {
   <meta charset="UTF-8" />
   <title>Pjotr Boomgaard — Portfolio</title>
   <style>
-    @media print { a { color: #0066cc; text-decoration: none; } a[href]:after { content: none; } }
     body { font-family: "Lucida Console", "Courier New", monospace; font-size: 11pt; line-height: 1.6; color: #111; max-width: 700px; margin: 0 auto; padding: 2rem; }
     h1 { font-size: 1.4rem; font-weight: 400; margin-bottom: 2rem; }
     .project { margin-bottom: 2.5rem; break-inside: avoid; }
@@ -80,9 +68,7 @@ function buildHtml(): string {
     .meta { font-size: 0.75rem; color: #555; margin-bottom: 0.8rem; }
     .desc, .cv { margin-bottom: 0.5rem; }
     .cv { font-size: 0.85rem; color: #555; }
-    .links { margin-top: 0.5rem; font-size: 0.85rem; }
-    .links a { color: #0066cc; }
-    .links a:hover { text-decoration: underline; }
+    .links { margin-top: 0.5rem; font-size: 0.85rem; color: #111; }
     .about { margin-top: 3rem; padding-top: 2rem; border-top: 1px solid #ddd; }
     .about h2 { font-size: 1rem; margin-bottom: 0.8rem; }
     .about p { margin-bottom: 0.6rem; }
@@ -95,7 +81,7 @@ function buildHtml(): string {
   <section class="about">
     <h2>Over</h2>
     <p>${escapeHtml(aboutText)}</p>
-    <p class="contact">Amsterdam · <a href="mailto:pjotrboomgaard@gmail.com">pjotrboomgaard@gmail.com</a></p>
+    <p class="contact">Amsterdam · pjotrboomgaard@gmail.com</p>
   </section>
 </body>
 </html>`;

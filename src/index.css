@@ -25,18 +25,14 @@ body {
     monospace;
   font-size: 14px;
   line-height: 1.6;
-  overflow: hidden;
 }
 
 /* ================================================
-   SCROLL CONTAINER (proximity snap, not mandatory)
+   MAIN CONTENT (normal document scroll)
    ================================================ */
 
-.scroll-container {
-  height: 100vh;
-  overflow-y: scroll;
-  scroll-snap-type: y proximity;
-  -webkit-overflow-scrolling: touch;
+.main-content {
+  /* Normal flow; page scrolls with document */
 }
 
 /* ================================================
@@ -192,7 +188,6 @@ body {
 
 .home-grid-section {
   min-height: 100vh;
-  scroll-snap-align: start;
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -239,6 +234,13 @@ body {
   height: 100%;
   object-fit: cover;
   display: block;
+  transition: filter 0.35s ease;
+}
+
+/* Invert only the thumbnail image in the square for these cards */
+.grid-card[data-project-id="meetingmemo"]:hover .grid-card-thumb img,
+.grid-card[data-project-id="tobor-ai"]:hover .grid-card-thumb img {
+  filter: invert(1);
 }
 
 /* Tobor AI thumbnail: show full ASCII head in square */
@@ -310,8 +312,8 @@ body {
    ================================================ */
 
 .project-section {
-  min-height: 140vh;
-  scroll-snap-align: start;
+  min-height: 70vh;
+  scroll-margin-top: 3rem;
   position: relative;
   overflow: hidden;
   padding: 6rem 4rem 5rem;
@@ -570,6 +572,33 @@ body {
    TOBOR  —  video wide, still + info on right
    ================================================ */
 
+/* Tobor (film): tekst links, video + foto rechts */
+.ps-tobor-film-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 2.5rem;
+  align-items: flex-start;
+}
+
+.ps-tobor-film-text {
+  flex: 0 1 auto;
+  max-width: 42em;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.ps-tobor-film-media {
+  flex: 0 0 38%;
+  max-width: 38%;
+  min-width: 280px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
 .ps-tobor-row {
   display: flex;
   gap: 2rem;
@@ -601,16 +630,241 @@ body {
 }
 
 /* Tobor AI page: intro block (no video row) */
-.ps-tobor-ai .ps-tobor-ai-intro {
+/* Tobor AI: tekst links, Tobor rechts, altijd naast elkaar */
+.ps-tobor-ai-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 2rem;
+  align-items: flex-start;
+  margin-top: 2rem;
+  position: relative;
+}
+
+.ps-tobor-zone-connector {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.ps-tobor-zone-connector-path {
+  stroke: rgba(0, 0, 0, 0.28);
+  stroke-width: 2px;
+  vector-effect: non-scaling-stroke;
+}
+
+.ps-tobor-zone-connector-dot {
+  fill: rgba(0, 0, 0, 0.35);
+}
+
+.ps-tobor-ai-row > .ps-tobor-ai-content,
+.ps-tobor-ai-row > .ps-tobor-body-wrap {
+  position: relative;
+  z-index: 1;
+}
+
+.ps-tobor-ai-content {
+  flex: 0 1 auto;
+  max-width: 42em;
+  min-width: 0;
+  position: relative;
+}
+
+.ps-tobor-ai-default {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  margin-bottom: 0.5rem;
+  transition: opacity 0.35s ease;
 }
 
-.ps-tobor-ai .ps-tobor-ai-intro .p-text {
+.ps-tobor-ai-default.ps-tobor-ai-content-hidden {
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+}
+
+.ps-tobor-ai-default .p-text {
   max-width: 42em;
 }
+
+.ps-tobor-ai-zone-content {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.35s ease;
+}
+
+.ps-tobor-ai-zone-content.ps-tobor-ai-zone-visible {
+  opacity: 1;
+  pointer-events: auto;
+  position: relative;
+}
+
+.ps-tobor-ai-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.ps-tobor-body-wrap {
+  flex: 0 0 auto;
+  width: 280px;
+  min-width: 280px;
+  max-width: 320px;
+}
+
+.ps-tobor-zone-content-header {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 0.25rem;
+}
+
+.ps-tobor-zone-close {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  border: none;
+  background: rgba(0, 0, 0, 0.08);
+  border-radius: 4px;
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+  color: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.ps-tobor-zone-close:hover {
+  background: rgba(0, 0, 0, 0.14);
+  color: #000;
+}
+
+.ps-tobor-zone-img-wrap {
+  flex: 0 0 auto;
+  min-height: 120px;
+}
+
+.ps-tobor-zone-img {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  min-height: 120px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: rgba(0, 0, 0, 0.06);
+  opacity: 0.9;
+}
+
+.ps-tobor-zone-img-caption {
+  margin: 0.35rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.5);
+}
+
+.ps-tobor-body-img-container {
+  position: relative;
+  width: 100%;
+  cursor: default;
+}
+
+.ps-tobor-body-img {
+  display: block;
+  width: 100%;
+  height: auto;
+  vertical-align: top;
+}
+
+.ps-tobor-body-caption {
+  margin: 0.75rem 0 0;
+  font-size: 0.8rem;
+  color: rgba(0, 0, 0, 0.5);
+  line-height: 1.4;
+}
+
+.ps-tobor-body-zone {
+  position: absolute;
+  left: 0;
+  right: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s ease;
+  pointer-events: auto;
+  box-sizing: border-box;
+}
+
+.ps-tobor-body-zone:hover {
+  background: transparent;
+}
+
+.ps-tobor-body-zone:focus {
+  outline: none;
+}
+
+/* Cirkel: doorzichtiger, zichtbaar bij hover én wanneer aangeklikt */
+.ps-tobor-body-zone-indicator {
+  display: block;
+  width: 2rem;
+  height: 2rem;
+  border: 2px solid rgba(0, 0, 0, 0.28);
+  border-radius: 50%;
+  margin: auto;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.ps-tobor-body-zone:hover .ps-tobor-body-zone-indicator,
+.ps-tobor-body-zone.ps-tobor-body-zone-active .ps-tobor-body-zone-indicator {
+  opacity: 1;
+}
+
+.ps-tobor-zone-paragraph {
+  margin: 0;
+  padding: 0;
+  font-size: 0.9rem;
+  line-height: 1.55;
+  max-width: 36em;
+}
+
+.ps-tobor-ai .ps-tobor-narrative {
+  margin-top: 2.5rem;
+  padding-top: 2rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+@media (max-width: 720px) {
+  .ps-tobor-ai-row {
+    gap: 1.25rem;
+  }
+  .ps-tobor-body-wrap {
+    width: 240px;
+    min-width: 240px;
+  }
+}
+
 
 /* Tobor hardware, functions, concept (technical drawing) */
 .ps-tobor-hardware,
@@ -813,24 +1067,41 @@ body {
    ================================================ */
 
 .ps-memo .ps-inner {
-  display: flex;
-  flex-direction: column;
-  gap: 1.5rem;
+  display: block;
 }
 
-.ps-memo-top {
+.ps-memo-row {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 2.5rem;
   align-items: flex-start;
 }
 
-.ps-memo-top .p-title-block {
-  flex-shrink: 0;
+.ps-memo-texts-wrap {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
 }
 
 .ps-memo-texts {
-  flex: 1;
-  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ps-memo-embed {
+  flex: 0 0 auto;
+  width: 52%;
+  min-width: 320px;
+  max-width: 560px;
+}
+
+.ps-memo-embed .p-embed-full {
+  height: 65vh;
+  min-height: 380px;
 }
 
 /* ================================================
@@ -995,16 +1266,25 @@ body {
 }
 
 .ps-robo-top {
-  display: grid;
-  grid-template-columns: 280px 1fr;
-  grid-template-rows: auto;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: 2.5rem;
-  align-items: start;
+  align-items: flex-start;
   width: 100%;
 }
 
+.ps-robo-text {
+  flex: 0 1 auto;
+  max-width: 42em;
+  min-width: 0;
+}
+
 .ps-robo-flyer {
-  grid-column: 1;
+  flex: 0 0 auto;
+  width: 280px;
+  min-width: 280px;
+  max-width: 280px;
 }
 
 .ps-robo-flyer-img {
@@ -1016,7 +1296,6 @@ body {
 }
 
 .ps-robo-text {
-  grid-column: 2;
   display: flex;
   flex-direction: column;
   gap: 1.2rem;
@@ -1079,13 +1358,118 @@ body {
 }
 
 /* ================================================
+   PARTNERS (Samenwerkingspartners)
+   ================================================ */
+
+.ps-partners {
+  padding-top: 4rem;
+  padding-bottom: 4rem;
+}
+
+.ps-partners-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.15em;
+  color: rgba(0, 0, 0, 0.3);
+  display: block;
+  margin-bottom: 2rem;
+}
+
+.ps-partners-list {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+  max-width: 640px;
+}
+
+.partner-block {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.partner-name {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #000;
+  margin: 0;
+}
+
+.partner-role {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: rgba(0, 0, 0, 0.6);
+  margin: 0;
+}
+
+.partner-statement {
+  font-size: 0.92rem;
+  line-height: 1.7;
+  color: rgba(0, 0, 0, 0.75);
+  margin: 0;
+  font-style: italic;
+}
+
+.partner-track {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.partner-track-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.partner-track-title {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: rgba(0, 0, 0, 0.45);
+  margin: 0;
+  font-weight: 600;
+}
+
+.partner-track-list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: rgba(0, 0, 0, 0.7);
+}
+
+.partner-track-list li {
+  margin-bottom: 0.25rem;
+}
+
+.partner-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.2rem;
+  margin-top: 0.5rem;
+}
+
+.partner-link {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.5);
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.partner-link:hover {
+  color: #000;
+}
+
+/* ================================================
    RESPONSIVE
    ================================================ */
 
 @media (max-width: 800px) {
   .project-section {
     padding: 4rem 1.5rem 3rem;
-    min-height: 100vh;
+    min-height: 70vh;
   }
 
   .home-grid-section {
@@ -1103,15 +1487,11 @@ body {
   }
 
   .ps-robo-top {
-    grid-template-columns: 1fr;
+    gap: 1.5rem;
   }
-
   .ps-robo-flyer {
-    grid-column: 1;
-  }
-
-  .ps-robo-text {
-    grid-column: 1;
+    width: 240px;
+    min-width: 240px;
   }
 
   .ps-voice-right,
@@ -1121,6 +1501,14 @@ body {
     width: 100%;
   }
 
+  .ps-tobor-film-row {
+    flex-direction: column;
+  }
+  .ps-tobor-film-media {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
   .ps-tobor-row,
   .ps-nwbl-row,
   .ps-alien-media,
@@ -1129,8 +1517,13 @@ body {
   .ps-dh-stills,
   .ps-zanne-top,
   .ps-zanne-bottom,
-  .ps-memo-top {
+  .ps-memo-row {
     flex-direction: column;
+  }
+  .ps-memo-embed {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 
   .ps-dh-top .p-img,
@@ -1146,6 +1539,44 @@ body {
 
   .nav-menu {
     width: 280px;
+  }
+}
+
+/* Tobor + Robo + Memo: afbeelding/embed eronder als tekst smaller dan ~helft */
+@media (max-width: 560px) {
+  .ps-tobor-ai-row {
+    flex-direction: column;
+    flex-wrap: wrap;
+  }
+  .ps-tobor-ai-row .ps-tobor-body-wrap {
+    width: 100%;
+    max-width: 280px;
+    min-width: 0;
+  }
+  .ps-robo-top {
+    flex-direction: column;
+    flex-wrap: wrap;
+  }
+  .ps-robo-flyer {
+    width: 100%;
+    max-width: 280px;
+    min-width: 0;
+  }
+  .ps-memo-row {
+    flex-direction: column;
+  }
+  .ps-memo-embed {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+  .ps-tobor-film-row {
+    flex-direction: column;
+  }
+  .ps-tobor-film-media {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
   }
 }
 

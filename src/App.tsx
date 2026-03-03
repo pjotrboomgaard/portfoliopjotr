@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { DevProvider } from "./context/DevContext";
 import { LangProvider } from "./context/LangContext";
 import Header from "./components/Header";
@@ -11,12 +11,9 @@ import { projects } from "./data/projects";
 
 function Inner() {
   const [navOpen, setNavOpen] = useState(false);
-  const scrollRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
-    const el = scrollRef.current;
-    if (!el) return;
-    const scrollTop = () => el.scrollTo(0, 0);
+    const scrollTop = () => window.scrollTo(0, 0);
     scrollTop();
     requestAnimationFrame(scrollTop);
     const t1 = setTimeout(scrollTop, 100);
@@ -32,12 +29,13 @@ function Inner() {
 
   const handleNavigate = useCallback((id: string) => {
     const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
   const handleGoHome = useCallback(() => {
     const el = document.getElementById("home");
-    if (el) el.scrollIntoView({ behavior: "smooth" });
+    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+    else window.scrollTo({ top: 0, behavior: "smooth" });
   }, []);
 
   return (
@@ -51,7 +49,7 @@ function Inner() {
         onClose={() => setNavOpen(false)}
         onNavigate={handleNavigate}
       />
-      <main ref={scrollRef} className="scroll-container">
+      <main className="main-content">
         <HomeGrid onNavigate={handleNavigate} />
         {projects.filter((p) => !p.hidden).map((project) => (
           <ProjectSection key={project.id} project={project} />

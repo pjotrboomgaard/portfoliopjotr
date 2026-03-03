@@ -27,10 +27,33 @@ function Inner() {
     };
   }, []);
 
-  const handleNavigate = useCallback((id: string) => {
+  const scrollToId = useCallback((id: string) => {
+    if (!id) return;
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
+
+  const handleNavigate = useCallback(
+    (id: string) => {
+      scrollToId(id);
+      window.history.replaceState(null, "", id ? `#${id}` : window.location.pathname);
+    },
+    [scrollToId],
+  );
+
+  useEffect(() => {
+    const onHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash) scrollToId(hash);
+    };
+    onHashChange();
+    window.addEventListener("hashchange", onHashChange);
+    const t = setTimeout(onHashChange, 100);
+    return () => {
+      clearTimeout(t);
+      window.removeEventListener("hashchange", onHashChange);
+    };
+  }, [scrollToId]);
 
   const handleGoHome = useCallback(() => {
     const el = document.getElementById("home");

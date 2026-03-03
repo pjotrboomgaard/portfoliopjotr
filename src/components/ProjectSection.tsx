@@ -172,7 +172,12 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({ project }) => {
     src ? (
       <DevBlock id={devId} kind="media" className={wrapClass}>
         <figure className="p-figure">
-          <img src={src} alt={alt} />
+          <img
+            src={src}
+            alt={alt}
+            loading="lazy"
+            decoding="async"
+          />
           {caption && (
             <figcaption className="p-figcaption">{caption}</figcaption>
           )}
@@ -328,6 +333,8 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({ project }) => {
                   src={toborBodyImage}
                   alt={lang === "en" ? "Tobor" : "Tobor"}
                   className="ps-tobor-body-img"
+                  loading="lazy"
+                  decoding="async"
                 />
                 {toborZonesOrdered.map((zone) => (
                   <button
@@ -385,6 +392,8 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({ project }) => {
                     src={project.secondaryImage}
                     alt="Flyer Robo Ritueel"
                     className="ps-robo-flyer-img"
+                    loading="lazy"
+                    decoding="async"
                   />
                   <figcaption className="p-figcaption">Flyer Robo Ritueel</figcaption>
                 </figure>
@@ -540,13 +549,13 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({ project }) => {
           <div className="ps-land-speeltuin">
             <DevBlock id={`${pid}-speel1`} kind="media" className="p-img p-img-land-crop">
               <figure className="p-figure">
-                <img src="/speeltuin.png" alt="Speeltuin Spoorwegmuseum oud" />
+                <img src="/speeltuin.png" alt="Speeltuin Spoorwegmuseum oud" loading="lazy" decoding="async" />
                 <figcaption className="p-figcaption">speeltuin Spoorwegmuseum Utrecht</figcaption>
               </figure>
             </DevBlock>
             <DevBlock id={`${pid}-speel2`} kind="media" className="p-img p-img-land-crop">
               <figure className="p-figure">
-                <img src="/speeltuin.jpg" alt="Speeltuin Spoorwegmuseum" />
+                <img src="/speeltuin.jpg" alt="Speeltuin Spoorwegmuseum" loading="lazy" decoding="async" />
                 <figcaption className="p-figcaption">foto speeltuin sw-advies.nl</figcaption>
               </figure>
             </DevBlock>

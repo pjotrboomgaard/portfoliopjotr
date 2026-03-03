@@ -17,7 +17,10 @@ export interface Project {
   subtitle?: string;
   wip?: boolean;
   hidden?: boolean;
+  /** Grid card image. Use a small file (e.g. /thumbs/name.webp) for faster first-page load. */
   thumbnail?: string;
+  /** Optional small version for grid only; project section keeps using thumbnail or image. */
+  thumbnailSmall?: string;
   image?: string;
   secondaryImage?: string;
   videoUrl?: string;
@@ -191,11 +194,6 @@ export const projects: Project[] = [
     ],
     links: [
       {
-        label: "Bekijk promo op YouTube",
-        labelEn: "Watch promo on YouTube",
-        url: "https://www.youtube.com/watch?v=r9oi9AhULlc",
-      },
-      {
         label: "Bekijk op NPO",
         labelEn: "Watch on NPO",
         url: "https://www.npostart.nl/once-an-alien/VPWON_1348082",
@@ -235,7 +233,7 @@ export const projects: Project[] = [
     thumbnail: "/still-non-humans-2.png",
     image: "/still-non-humans-2.png",
     secondaryImage: "/still-non-humans-3.png",
-    videoUrl: "https://www.youtube.com/embed/nzlE3gPM9vQ",
+    videoUrl: "https://www.youtube.com/embed/Nwj23M1QbgE",
     descriptions: [
       "Voor mijn afstudeeronderzoek voerde ik een reeks interviews met bewoners van Den Helder over hun relatie tot niet-menselijke entiteiten: dieren, natuur en objecten.",
       "Het project onderzocht hoe mensen betekenis geven aan hun omgeving en hoe menselijke en niet-menselijke werelden zich tot elkaar verhouden. Ik sprak met een duivenverzorger, een trotse tuinbezitter en leden van een zwemclub.",
@@ -247,7 +245,7 @@ export const projects: Project[] = [
       {
         label: "Bekijk op YouTube",
         labelEn: "Watch on YouTube",
-        url: "https://www.youtube.com/watch?v=nzlE3gPM9vQ",
+        url: "https://youtu.be/Nwj23M1QbgE",
       },
     ],
     en: {

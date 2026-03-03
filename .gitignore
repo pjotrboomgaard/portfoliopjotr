@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# Editor / tool config (may contain secrets)
+.config
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

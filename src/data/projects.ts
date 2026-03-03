@@ -194,6 +194,11 @@ export const projects: Project[] = [
     ],
     links: [
       {
+        label: "Bekijk promo op YouTube",
+        labelEn: "Watch promo on YouTube",
+        url: "https://www.youtube.com/watch?v=r9oi9AhULlc",
+      },
+      {
         label: "Bekijk op NPO",
         labelEn: "Watch on NPO",
         url: "https://www.npostart.nl/once-an-alien/VPWON_1348082",

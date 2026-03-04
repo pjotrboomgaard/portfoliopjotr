@@ -1,14 +1,10 @@
 /**
  * Export portfolio as screen-sized PDF (1440×900px per page).
  *
- * - Page 1: TOC (title left, project list right; all 11 + home + about + partners)
- * - Page 2: Home grid
- * - Pages 3–14: One per project
- * - Page 15: About
- * - Page 16: Partners
- * - Pages 17–22: Tobor onderdelen (one per zone, clickable from robot)
+ * - First: CV (from Mijn eigen gegevens/CV tracklist (2).pdf)
+ * - Then: Page 1 TOC, Home grid, projects, About, Partners, Tobor zone pages.
  *
- * Every page: footer left "Portfolio film  ·  pjotrboomgaard@gmail.com", right page number.
+ * Every portfolio page: footer left "Portfolio film  ·  pjotrboomgaard@gmail.com", right page number.
  * Robot zones are clickable links to the zone pages.
  *
  * Run:  npm run pdf:website
@@ -17,9 +13,10 @@
 
 import puppeteer from "puppeteer";
 import { spawn } from "child_process";
-import { mkdirSync, existsSync } from "fs";
+import { mkdirSync, existsSync, readFileSync, writeFileSync } from "fs";
 import { dirname, join } from "path";
 import { fileURLToPath } from "url";
+import { PDFDocument } from "pdf-lib";
 import { toborZoneContent } from "../src/data/tobor";
 import type { ToborZoneId } from "../src/data/tobor";
 
@@ -27,6 +24,9 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const root      = join(__dirname, "..");
 const distDir   = join(root, "dist");
 const pdfPath   = join(distDir, "portfolio-website.pdf");
+
+// CV komt vooraan; pad: Aanvragen/Mijn eigen gegevens/ (root = Portfolio, 3x omhoog = Aanvragen)
+const cvPdfPath = join(root, "..", "..", "..", "Mijn eigen gegevens", "CV tracklist (2).pdf");
 
 const PORT = 4173;
 const SITE = `http://127.0.0.1:${PORT}`;
@@ -58,17 +58,17 @@ function startPreview() {
   const p = spawn("npx", ["vite", "preview", "--port", String(PORT)], {
     cwd: root, shell: true, stdio: ["ignore", "pipe", "pipe"],
   });
-  return new Promise<typeof p>(r => setTimeout(() => r(p), 700));
+  return new Promise<typeof p>(r => setTimeout(() => r(p), 2500));
 }
 
-function waitForServer(url: string, tries = 50): Promise<void> {
+function waitForServer(url: string, tries = 80): Promise<void> {
   return new Promise((resolve, reject) => {
     let n = 0;
     const ping = () => {
       n++;
-      fetch(url, { method: "HEAD" })
+      fetch(url, { method: "HEAD", signal: AbortSignal.timeout(5000) })
         .then(() => resolve())
-        .catch(() => n < tries ? setTimeout(ping, 300) : reject(new Error("server timeout")));
+        .catch(() => n < tries ? setTimeout(ping, 400) : reject(new Error("server timeout")));
     };
     ping();
   });
@@ -88,25 +88,31 @@ async function main() {
   const browser = await puppeteer.launch({
     headless: true,
     args: ["--no-sandbox", "--disable-web-security"],
+    protocolTimeout: 300_000,
   });
 
   try {
     const page = await browser.newPage();
+    page.setDefaultTimeout(120_000);
+    page.setDefaultNavigationTimeout(90_000);
     await page.setViewport({ width: W, height: H, deviceScaleFactor: 1 });
     await page.goto(SITE, { waitUntil: "networkidle0", timeout: 60_000 });
 
     await page.evaluateHandle("document.fonts.ready");
-    await page.evaluate(`new Promise(function(resolve) {
-      var imgs = Array.from(document.querySelectorAll('img'));
-      var left = imgs.filter(function(i){ return !i.complete; });
-      if (!left.length) { resolve(); return; }
-      var done = 0;
-      left.forEach(function(img) {
-        function fin() { done++; if (done === left.length) resolve(); }
-        img.addEventListener('load', fin);
-        img.addEventListener('error', fin);
-      });
-    })`);
+    await Promise.race([
+      page.evaluate(`new Promise(function(resolve) {
+        var imgs = Array.from(document.querySelectorAll('img'));
+        var left = imgs.filter(function(i){ return !i.complete; });
+        if (!left.length) { resolve(); return; }
+        var done = 0;
+        left.forEach(function(img) {
+          function fin() { done++; if (done === left.length) resolve(); }
+          img.addEventListener('load', fin);
+          img.addEventListener('error', fin);
+        });
+      })`),
+      sleep(25_000),
+    ]);
 
     await page.evaluate(`(async function() {
       function d(ms){ return new Promise(function(r){ setTimeout(r,ms); }); }
@@ -330,14 +336,32 @@ async function main() {
     });
 
     mkdirSync(distDir, { recursive: true });
+    const websitePdfPath = join(distDir, "portfolio-website-only.pdf");
     await (page as any).pdf({
-      path: pdfPath,
+      path: websitePdfPath,
       width: W + "px",
       height: H + "px",
       printBackground: true,
       margin: { top: "0", right: "0", bottom: "0", left: "0" },
     });
 
+    // CV vooraan, daarna website: samenvoegen tot portfolio-website.pdf
+    const mergedPdf = await PDFDocument.create();
+    if (existsSync(cvPdfPath)) {
+      const cvBytes = readFileSync(cvPdfPath);
+      const cvDoc = await PDFDocument.load(cvBytes);
+      const cvPages = await mergedPdf.copyPages(cvDoc, cvDoc.getPageIndices());
+      cvPages.forEach((p) => mergedPdf.addPage(p));
+      console.log("✓  CV toegevoegd (" + cvPages.length + " pagina's)");
+    } else {
+      console.warn("⚠  CV niet gevonden:", cvPdfPath);
+    }
+    const webBytes = readFileSync(websitePdfPath);
+    const webDoc = await PDFDocument.load(webBytes);
+    const webPages = await mergedPdf.copyPages(webDoc, webDoc.getPageIndices());
+    webPages.forEach((p) => mergedPdf.addPage(p));
+    const mergedBytes = await mergedPdf.save();
+    writeFileSync(pdfPath, mergedBytes);
     console.log("✓  PDF written:", pdfPath);
   } finally {
     await browser.close();

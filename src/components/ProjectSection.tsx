@@ -1,11 +1,162 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import {
+  DndContext,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import { SortableContext, useSortable, rectSortingStrategy, arrayMove } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import type { Project } from "../data/projects";
 import { toborZoneContent, type ToborZoneId } from "../data/tobor";
+import { picsAlbums } from "../data/picsWebsite";
+import picsOrderKeys from "../data/picsOrder.json";
 import DevBlock from "./DevBlock";
 import { useLang } from "../context/LangContext";
 
 interface ProjectSectionProps {
   project: Project;
+}
+
+type PicsPhoto = { src: string; width: number; height: number; key: string; alt: string; landscape: boolean };
+
+type PicsTile = { id: string; photos: number[] };
+
+function tilesFromSaved(
+  saved: (string | string[])[],
+  photos: PicsPhoto[]
+): PicsTile[] {
+  const used = new Set<number>();
+  const tiles: PicsTile[] = [];
+  let id = 0;
+  for (const item of saved) {
+    if (typeof item === "string") {
+      const i = photos.findIndex((p) => p.key === item);
+      if (i !== -1 && !used.has(i)) {
+        tiles.push({ id: `tile-${id++}`, photos: [i] });
+        used.add(i);
+      }
+    } else if (Array.isArray(item) && item.length === 2) {
+      const a = photos.findIndex((p) => p.key === item[0]);
+      const b = photos.findIndex((p) => p.key === item[1]);
+      if (a !== -1 && b !== -1 && !used.has(a) && !used.has(b)) {
+        tiles.push({ id: `tile-${id++}`, photos: [a, b] });
+        used.add(a);
+        used.add(b);
+      }
+    }
+  }
+  for (let i = 0; i < photos.length; i++) if (!used.has(i)) tiles.push({ id: `tile-${id++}`, photos: [i] });
+  return tiles;
+}
+
+function tilesFromOrder(order: number[]): PicsTile[] {
+  return order.map((photoIdx, i) => ({ id: `tile-${i}`, photos: [photoIdx] }));
+}
+
+function orderFromKeys(keys: string[], photos: PicsPhoto[]): number[] {
+  const used = new Set<number>();
+  const result: number[] = [];
+  for (const k of keys) {
+    const i = photos.findIndex((p) => p.key === k);
+    if (i !== -1 && !used.has(i)) {
+      result.push(i);
+      used.add(i);
+    }
+  }
+  for (let i = 0; i < photos.length; i++) if (!used.has(i)) result.push(i);
+  return result;
+}
+
+function SortablePicsItem({
+  id,
+  photo,
+  flatIndex,
+  onPhotoClick,
+}: {
+  id: string;
+  photo: PicsPhoto;
+  flatIndex: number;
+  onPhotoClick?: (flatIndex: number) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`ps-pics-grid-item ${photo.landscape ? "ps-pics-grid-item-landscape" : "ps-pics-grid-item-portrait"} ${isDragging ? "ps-pics-grid-item-dragging" : ""}`}
+      {...attributes}
+      {...listeners}
+      onClick={() => onPhotoClick?.(flatIndex)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onPhotoClick?.(flatIndex)}
+    >
+      <img src={photo.src} alt={photo.alt} loading="lazy" decoding="async" />
+    </div>
+  );
+}
+
+function SortableStackItem({
+  id,
+  photos,
+  photoList,
+  flatIndex,
+  onUnstack,
+  onPhotoClick,
+  lang,
+}: {
+  id: string;
+  photos: number[];
+  photoList: PicsPhoto[];
+  flatIndex: number;
+  onUnstack: () => void;
+  onPhotoClick?: (flatIndex: number) => void;
+  lang: string;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+  };
+  const p0 = photoList[photos[0]];
+  const p1 = photoList[photos[1]];
+  return (
+    <div
+      ref={setNodeRef}
+      style={style}
+      className={`ps-pics-grid-item ps-pics-grid-item-stack ${isDragging ? "ps-pics-grid-item-dragging" : ""}`}
+      {...attributes}
+      {...listeners}
+      onClick={() => onPhotoClick?.(flatIndex)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => e.key === "Enter" && onPhotoClick?.(flatIndex)}
+    >
+      <div className="ps-pics-stack-inner">
+        <img src={p0.src} alt={p0.alt} loading="lazy" decoding="async" />
+        <img src={p1.src} alt={p1.alt} loading="lazy" decoding="async" />
+      </div>
+      <button
+        type="button"
+        className="ps-pics-unstack-btn"
+        onClick={(e) => {
+          e.stopPropagation();
+          onUnstack();
+        }}
+        title={lang === "en" ? "Split" : "Splitsen"}
+        aria-label={lang === "en" ? "Split stack" : "Stapel splitsen"}
+      >
+        ×
+      </button>
+    </div>
+  );
 }
 
 const ProjectSection: React.FC<ProjectSectionProps> = ({ project }) => {
@@ -22,6 +173,58 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({ project }) => {
   const activeZoneBtnRef = useRef<HTMLButtonElement | null>(null);
   const toborZoneImageRef = useRef<HTMLDivElement>(null);
   const { lang } = useLang();
+  const PICS_PAGE_SIZE = 6;
+  const [picsWindowIndex, setPicsWindowIndex] = useState(0);
+  const [picsTiles, setPicsTiles] = useState<PicsTile[]>([]);
+  const [picsOverlay, setPicsOverlay] = useState<{
+    flatPhotos: { src: string; alt: string }[];
+    currentIndex: number;
+  } | null>(null);
+  const [picsOverlayClosing, setPicsOverlayClosing] = useState(false);
+  const [picsOverlayReady, setPicsOverlayReady] = useState(false);
+  const [picsLightboxFading, setPicsLightboxFading] = useState(false);
+  const [picsGridTransitionTo, setPicsGridTransitionTo] = useState<number | null>(null);
+  const [picsGridTransitionActive, setPicsGridTransitionActive] = useState(false);
+  const [picsShuffleFrom, setPicsShuffleFrom] = useState<PicsTile[] | null>(null);
+  const [picsShuffleTo, setPicsShuffleTo] = useState<PicsTile[] | null>(null);
+  const [picsShuffleActive, setPicsShuffleActive] = useState(false);
+  const tileIdRef = useRef(0);
+  const savedOrderLoadedRef = useRef(false);
+  const picsJustDraggedRef = useRef(false);
+  const picsDragSensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  );
+
+  const picsPhotos = useMemo((): PicsPhoto[] => {
+    return picsAlbums.flatMap((album) =>
+      (album.images as (string | { src: string; width: number; height: number })[]).map((img, idx) => {
+        const src = typeof img === "string" ? img : img.src;
+        const width = typeof img === "string" ? 600 : img.width;
+        const height = typeof img === "string" ? 400 : img.height;
+        const landscape = width > height;
+        return {
+          src,
+          width,
+          height,
+          key: `${album.id}-${idx}`,
+          alt: `${album.title} ${idx + 1}`,
+          landscape,
+        };
+      })
+    );
+  }, []);
+
+  useEffect(() => {
+    if (savedOrderLoadedRef.current || picsPhotos.length === 0) return;
+    savedOrderLoadedRef.current = true;
+    const raw = picsOrderKeys as string[] | (string | string[])[];
+    if (Array.isArray(raw) && raw.length > 0 && raw.some((x) => Array.isArray(x))) {
+      setPicsTiles(tilesFromSaved(raw as (string | string[])[], picsPhotos));
+    } else {
+      const keys = (raw as string[]).length ? (raw as string[]) : picsPhotos.map((p) => p.key);
+      setPicsTiles(tilesFromOrder(orderFromKeys(keys, picsPhotos)));
+    }
+  }, [picsPhotos]);
 
   const toborZones: { id: ToborZoneId; top: string; height: string }[] = [
     { id: "sirene", top: "0%", height: "10%" },
@@ -361,7 +564,7 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({ project }) => {
               <p className="ps-tobor-body-caption">
                 {lang === "en"
                   ? "Move your mouse over Tobor for part descriptions"
-                  : "Beweeg je muis over Tobor voor toelichting onderdelen"}
+                  : "Klik onderdelen van Tobor aan voor uitleg"}
               </p>
             </div>
           </div>
@@ -573,6 +776,427 @@ const ProjectSection: React.FC<ProjectSectionProps> = ({ project }) => {
               plattegrond omgeving huis 1:100
               <span className="p-north-arrow">↑&thinsp;N</span>
             </>,
+          )}
+        </div>
+      </section>
+    );
+  }
+
+  useEffect(() => {
+    if (picsOverlay) {
+      setPicsOverlayReady(false);
+      const t = requestAnimationFrame(() => setPicsOverlayReady(true));
+      return () => cancelAnimationFrame(t);
+    }
+    setPicsOverlayReady(false);
+  }, [picsOverlay]);
+
+  useEffect(() => {
+    if (picsOverlay) {
+      const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+      document.body.style.paddingRight = `${scrollbarWidth}px`;
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    }
+    return () => {
+      document.body.style.overflow = "";
+      document.body.style.paddingRight = "";
+    };
+  }, [picsOverlay]);
+  const picsLightboxRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (picsOverlay) {
+      const id = setTimeout(() => picsLightboxRef.current?.focus(), 50);
+      return () => clearTimeout(id);
+    }
+  }, [picsOverlay]);
+
+  if (pid === "pics-website") {
+    const photos = picsPhotos;
+    const tiles = picsTiles.length > 0 ? picsTiles : tilesFromOrder(photos.map((_, i) => i));
+    const flatPhotos = tiles.flatMap((t) => t.photos.map((i) => ({ src: photos[i].src, alt: photos[i].alt })));
+
+    const openLightbox = (flatIndex: number) => {
+      if (picsJustDraggedRef.current) return;
+      setPicsOverlayClosing(false);
+      setPicsOverlay({ flatPhotos, currentIndex: flatIndex });
+    };
+
+    const closeLightbox = () => {
+      setPicsOverlayClosing(true);
+      setTimeout(() => {
+        setPicsOverlay(null);
+        setPicsOverlayClosing(false);
+      }, 300);
+    };
+
+    const goPrev = () => {
+      if (!picsOverlay) return;
+      setPicsLightboxFading(true);
+      setTimeout(() => {
+        const next = (picsOverlay.currentIndex - 1 + picsOverlay.flatPhotos.length) % picsOverlay.flatPhotos.length;
+        setPicsOverlay({ ...picsOverlay, currentIndex: next });
+        setPicsLightboxFading(false);
+      }, 200);
+    };
+
+    const goNext = () => {
+      if (!picsOverlay) return;
+      setPicsLightboxFading(true);
+      setTimeout(() => {
+        const next = (picsOverlay.currentIndex + 1) % picsOverlay.flatPhotos.length;
+        setPicsOverlay({ ...picsOverlay, currentIndex: next });
+        setPicsLightboxFading(false);
+      }, 200);
+    };
+
+    const firstPhotoAspect = useMemo(() => {
+      if (photos.length === 0) return 3 / 4;
+      const p = photos[0];
+      return p ? p.width / p.height : 3 / 4;
+    }, [photos]);
+
+    const maxWindowIndex = Math.max(0, Math.ceil(tiles.length / PICS_PAGE_SIZE) - 1);
+    const visibleTiles = tiles.slice(
+      picsWindowIndex * PICS_PAGE_SIZE,
+      picsWindowIndex * PICS_PAGE_SIZE + PICS_PAGE_SIZE
+    );
+    const visibleTilesFrom = picsGridTransitionTo != null ? tiles.slice(
+      picsWindowIndex * PICS_PAGE_SIZE,
+      picsWindowIndex * PICS_PAGE_SIZE + PICS_PAGE_SIZE
+    ) : [];
+    const visibleTilesTo = picsGridTransitionTo != null ? tiles.slice(
+      picsGridTransitionTo * PICS_PAGE_SIZE,
+      picsGridTransitionTo * PICS_PAGE_SIZE + PICS_PAGE_SIZE
+    ) : [];
+
+    useEffect(() => {
+      if (picsGridTransitionTo == null) return;
+      const raf = requestAnimationFrame(() => setPicsGridTransitionActive(true));
+      const t = setTimeout(() => {
+        setPicsWindowIndex(picsGridTransitionTo);
+        setPicsGridTransitionTo(null);
+        setPicsGridTransitionActive(false);
+      }, 250);
+      return () => {
+        cancelAnimationFrame(raf);
+        clearTimeout(t);
+      };
+    }, [picsGridTransitionTo]);
+
+    const handlePicsDragStart = () => {
+      picsJustDraggedRef.current = true;
+    };
+
+    const handlePicsDragEnd = (event: DragEndEvent) => {
+      setTimeout(() => {
+        picsJustDraggedRef.current = false;
+      }, 0);
+      const { active, over } = event;
+      if (over == null || active.id === over.id) return;
+      const activeId = String(active.id);
+      const overId = String(over.id);
+      const localActive = visibleTiles.findIndex((t) => t.id === activeId);
+      const localOver = visibleTiles.findIndex((t) => t.id === overId);
+      if (localActive === -1 || localOver === -1) return;
+      const activeIndex = picsWindowIndex * PICS_PAGE_SIZE + localActive;
+      const overIndex = picsWindowIndex * PICS_PAGE_SIZE + localOver;
+
+      const activeTile = tiles[activeIndex];
+      const overTile = tiles[overIndex];
+      const canMerge =
+        activeTile.photos.length === 1 &&
+        overTile.photos.length === 1 &&
+        photos[activeTile.photos[0]].landscape &&
+        photos[overTile.photos[0]].landscape;
+
+      if (canMerge) {
+        const newTiles = tiles.filter((_, i) => i !== activeIndex);
+        const newOverIndex = overIndex > activeIndex ? overIndex - 1 : overIndex;
+        const merged: PicsTile = {
+          id: `stack-${++tileIdRef.current}`,
+          photos: [activeTile.photos[0], overTile.photos[0]],
+        };
+        newTiles[newOverIndex] = merged;
+        setPicsTiles(newTiles);
+      } else {
+        setPicsTiles(arrayMove(tiles, activeIndex, overIndex));
+      }
+    };
+
+    const handleUnstack = (tileIndex: number) => {
+      const t = tiles[tileIndex];
+      if (t.photos.length !== 2) return;
+      const newTiles = [...tiles];
+      const [a, b] = t.photos;
+      newTiles[tileIndex] = { id: `tile-${++tileIdRef.current}`, photos: [a] };
+      newTiles.splice(tileIndex + 1, 0, { id: `tile-${++tileIdRef.current}`, photos: [b] });
+      setPicsTiles(newTiles);
+    };
+
+    const savePicsOrder = () => {
+      const payload = tiles.map((t) =>
+        t.photos.length === 1 ? photos[t.photos[0]].key : [photos[t.photos[0]].key, photos[t.photos[1]].key]
+      );
+      const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+      const a = document.createElement("a");
+      a.href = URL.createObjectURL(blob);
+      a.download = "picsOrder.json";
+      a.click();
+      URL.revokeObjectURL(a.href);
+    };
+
+    const shufflePics = () => {
+      if (picsShuffleFrom != null || picsGridTransitionTo != null) return;
+      const next = [...tiles];
+      for (let i = next.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [next[i], next[j]] = [next[j], next[i]];
+      }
+      setPicsShuffleFrom(tiles);
+      setPicsShuffleTo(next);
+      setPicsShuffleActive(false);
+    };
+
+    useEffect(() => {
+      if (picsShuffleFrom == null || picsShuffleTo == null) return;
+      const raf = requestAnimationFrame(() => setPicsShuffleActive(true));
+      const t = setTimeout(() => {
+        setPicsTiles(picsShuffleTo);
+        setPicsWindowIndex(0);
+        setPicsShuffleFrom(null);
+        setPicsShuffleTo(null);
+        setPicsShuffleActive(false);
+      }, 250);
+      return () => {
+        cancelAnimationFrame(raf);
+        clearTimeout(t);
+      };
+    }, [picsShuffleFrom, picsShuffleTo]);
+
+    return (
+      <section ref={sectionRef} id={pid} className="project-section ps-pics">
+        <div className={`ps-inner ${cls}`}>
+          <div className="ps-pics-row">
+            <div className="ps-pics-text">
+              {renderTitle()}
+              {renderTexts(descriptions, `${pid}-texts`)}
+            </div>
+            <div className="ps-pics-media">
+          <div className="ps-pics-scaled">
+          <div className="ps-pics-nav-row">
+            <div className="ps-pics-nav-slot">
+              {tiles.length > PICS_PAGE_SIZE && picsWindowIndex > 0 && (
+                <button
+                  type="button"
+                  className="ps-pics-nav-btn ps-pics-nav-left"
+                  disabled={picsShuffleFrom != null || picsGridTransitionTo != null}
+                  onClick={() => {
+                    if (picsGridTransitionTo != null || picsShuffleFrom != null) return;
+                    setPicsGridTransitionTo(picsWindowIndex - 1);
+                  }}
+                  aria-label={lang === "en" ? "Previous 2 rows" : "Vorige 2 rijen"}
+                  title={lang === "en" ? "Previous 2 rows" : "Vorige 2 rijen"}
+                >
+                  ‹
+                </button>
+              )}
+            </div>
+          <div className={`ps-pics-grid-fade-wrap ${(picsGridTransitionTo != null || (picsShuffleFrom != null && picsShuffleTo != null)) ? "is-crossfade" : ""}`}>
+            {(picsGridTransitionTo != null || (picsShuffleFrom != null && picsShuffleTo != null)) ? (
+              (() => {
+                const fromSlice = picsShuffleFrom != null ? picsShuffleFrom.slice(0, PICS_PAGE_SIZE) : visibleTilesFrom;
+                const toSlice = picsShuffleTo != null ? picsShuffleTo.slice(0, PICS_PAGE_SIZE) : visibleTilesTo;
+                const outActive = picsShuffleFrom != null ? picsShuffleActive : picsGridTransitionActive;
+                const inActive = picsShuffleFrom != null ? picsShuffleActive : picsGridTransitionActive;
+                return (
+              <>
+                <div className={`ps-pics-grid-layer ps-pics-grid-out ${outActive ? "is-out" : ""}`}>
+                  <div className="ps-pics-grid-wrap" style={{ ["--pics-cell-aspect" as string]: firstPhotoAspect }}>
+                    <div className="ps-pics-grid ps-pics-grid-mosaic">
+                      {fromSlice.map((tile) =>
+                        tile.photos.length === 1 ? (
+                          <div key={`out-${tile.id}`} className={`ps-pics-grid-item ${photos[tile.photos[0]].landscape ? "ps-pics-grid-item-landscape" : "ps-pics-grid-item-portrait"}`}>
+                            <img src={photos[tile.photos[0]].src} alt={photos[tile.photos[0]].alt} loading="lazy" decoding="async" />
+                          </div>
+                        ) : (
+                          <div key={`out-${tile.id}`} className="ps-pics-grid-item ps-pics-grid-item-stack">
+                            <div className="ps-pics-stack-inner">
+                              <img src={photos[tile.photos[0]].src} alt={photos[tile.photos[0]].alt} loading="lazy" decoding="async" />
+                              <img src={photos[tile.photos[1]].src} alt={photos[tile.photos[1]].alt} loading="lazy" decoding="async" />
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+                <div className={`ps-pics-grid-layer ps-pics-grid-in ${inActive ? "is-in" : ""}`}>
+                  <div className="ps-pics-grid-wrap" style={{ ["--pics-cell-aspect" as string]: firstPhotoAspect }}>
+                    <div className="ps-pics-grid ps-pics-grid-mosaic">
+                      {toSlice.map((tile) =>
+                        tile.photos.length === 1 ? (
+                          <div key={`in-${tile.id}`} className={`ps-pics-grid-item ${photos[tile.photos[0]].landscape ? "ps-pics-grid-item-landscape" : "ps-pics-grid-item-portrait"}`}>
+                            <img src={photos[tile.photos[0]].src} alt={photos[tile.photos[0]].alt} loading="lazy" decoding="async" />
+                          </div>
+                        ) : (
+                          <div key={`in-${tile.id}`} className="ps-pics-grid-item ps-pics-grid-item-stack">
+                            <div className="ps-pics-stack-inner">
+                              <img src={photos[tile.photos[0]].src} alt={photos[tile.photos[0]].alt} loading="lazy" decoding="async" />
+                              <img src={photos[tile.photos[1]].src} alt={photos[tile.photos[1]].alt} loading="lazy" decoding="async" />
+                            </div>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </>
+                );
+              })()
+            ) : (
+          <div
+            className="ps-pics-grid-wrap"
+            style={{ ["--pics-cell-aspect" as string]: firstPhotoAspect }}
+          >
+            <DndContext
+              sensors={picsDragSensors}
+              onDragStart={handlePicsDragStart}
+              onDragEnd={handlePicsDragEnd}
+            >
+              <SortableContext items={visibleTiles.map((t) => t.id)} strategy={rectSortingStrategy}>
+                <div className="ps-pics-grid ps-pics-grid-mosaic">
+                  {visibleTiles.map((tile, idx) => {
+                    const globalIdx = picsWindowIndex * PICS_PAGE_SIZE + idx;
+                    const flatStart = tiles.slice(0, globalIdx).reduce((s, t) => s + t.photos.length, 0);
+                    return tile.photos.length === 1 ? (
+                      <SortablePicsItem
+                        key={tile.id}
+                        id={tile.id}
+                        photo={photos[tile.photos[0]]}
+                        flatIndex={flatStart}
+                        onPhotoClick={openLightbox}
+                      />
+                    ) : (
+                      <SortableStackItem
+                        key={tile.id}
+                        id={tile.id}
+                        photos={tile.photos}
+                        photoList={photos}
+                        flatIndex={flatStart}
+                        onUnstack={() => handleUnstack(globalIdx)}
+                        onPhotoClick={openLightbox}
+                        lang={lang}
+                      />
+                    );
+                  })}
+                </div>
+              </SortableContext>
+            </DndContext>
+          </div>
+            )}
+          </div>
+            <div className="ps-pics-nav-slot">
+              {tiles.length > PICS_PAGE_SIZE && picsWindowIndex < maxWindowIndex && (
+                <button
+                  type="button"
+                  className="ps-pics-nav-btn ps-pics-nav-right"
+                  disabled={picsShuffleFrom != null || picsGridTransitionTo != null}
+                  onClick={() => {
+                    if (picsGridTransitionTo != null || picsShuffleFrom != null) return;
+                    setPicsGridTransitionTo(picsWindowIndex + 1);
+                  }}
+                  aria-label={lang === "en" ? "Next 2 rows" : "Volgende 2 rijen"}
+                  title={lang === "en" ? "Next 2 rows" : "Volgende 2 rijen"}
+                >
+                  ›
+                </button>
+              )}
+            </div>
+            </div>
+            </div>
+          <div className="ps-pics-footer">
+            <p className="ps-pics-instructions">
+              {lang === "en" ? "Click on photos to enlarge them." : "Klik op foto's om ze groter te maken."}
+              <br />
+              {lang === "en" ? "Drag to change the order." : "Sleep om de volgorde aan te passen."}
+            </p>
+            <button
+              type="button"
+              className="ps-pics-shuffle-btn"
+              onClick={shufflePics}
+              disabled={picsShuffleFrom != null || picsGridTransitionTo != null}
+              aria-label={lang === "en" ? "Shuffle order" : "Husselen"}
+              title={lang === "en" ? "Shuffle order" : "Husselen"}
+            >
+              {lang === "en" ? "Shuffle" : "Husselen"}
+            </button>
+          </div>
+            </div>
+          </div>
+          {picsOverlay && createPortal(
+            <div
+              ref={picsLightboxRef}
+              tabIndex={-1}
+              className={`ps-pics-lightbox ${picsOverlayReady && !picsOverlayClosing ? "is-open" : ""} ${picsOverlayClosing ? "is-closing" : ""}`}
+              role="dialog"
+              aria-modal="true"
+              aria-label={lang === "en" ? "Enlarged photo" : "Vergrote foto"}
+              onKeyDown={(e) => {
+                if (e.key === "ArrowLeft") {
+                  e.preventDefault();
+                  goPrev();
+                }
+                if (e.key === "ArrowRight") {
+                  e.preventDefault();
+                  goNext();
+                }
+                if (e.key === "Escape") {
+                  e.preventDefault();
+                  closeLightbox();
+                }
+              }}
+            >
+              <div className="ps-pics-lightbox-backdrop" onClick={closeLightbox} aria-hidden />
+              <div className="ps-pics-lightbox-inner">
+                {picsOverlay.flatPhotos.length > 1 && (
+                  <button
+                    type="button"
+                    className="ps-pics-lightbox-prev"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goPrev();
+                    }}
+                    aria-label={lang === "en" ? "Previous photo" : "Vorige foto"}
+                  >
+                    ←
+                  </button>
+                )}
+                <div className={`ps-pics-lightbox-content ${picsLightboxFading ? "is-fading" : ""}`} onClick={(e) => e.stopPropagation()}>
+                  <img
+                    key={picsOverlay.currentIndex}
+                    src={picsOverlay.flatPhotos[picsOverlay.currentIndex].src}
+                    alt={picsOverlay.flatPhotos[picsOverlay.currentIndex].alt}
+                  />
+                </div>
+                {picsOverlay.flatPhotos.length > 1 && (
+                  <button
+                    type="button"
+                    className="ps-pics-lightbox-next"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      goNext();
+                    }}
+                    aria-label={lang === "en" ? "Next photo" : "Volgende foto"}
+                  >
+                    →
+                  </button>
+                )}
+              </div>
+            </div>,
+            document.body
           )}
         </div>
       </section>

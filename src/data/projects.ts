@@ -313,6 +313,25 @@ export const projects: Project[] = [
     },
   },
   {
+    id: "pics-website",
+    title: "Straatfotografie 2023",
+    year: "2023",
+    subtitle: "Straatfotografie",
+    thumbnail:
+      "/pics-website/albert-cuyp/IMG_4373-trim.webp",
+    descriptions: [
+      "Straatfotografie op willekeurige momenten in Amsterdam en omstreken.",
+      "Een willekeurige selectie.",
+    ],
+    en: {
+      subtitle: "Street photography",
+      descriptions: [
+        "Street photography at random moments in and around Amsterdam.",
+        "A random selection.",
+      ],
+    },
+  },
+  {
     id: "huidhonger",
     title: "Huidhonger",
     year: "2021",

@@ -249,6 +249,11 @@ body {
   object-position: center center;
 }
 
+/* Straatfotografie thumbnail: bovenkant van de foto tonen */
+.grid-card-thumb img[src*="IMG_4373"] {
+  object-position: center top;
+}
+
 .grid-card-placeholder {
   width: 100%;
   height: 100%;
@@ -510,6 +515,504 @@ body {
   font-size: 0.65rem;
   letter-spacing: 0.05em;
   font-style: normal;
+}
+
+/* ================================================
+   PICS-WEBSITE PROJECT
+   ================================================ */
+
+.ps-pics {
+  background: #fff;
+}
+
+/* Geen witruimte: foto's grenzen aan elkaar; minder ruimte boven/onder grid */
+.project-section.ps-pics {
+  padding-top: 2rem;
+  padding-bottom: 2rem;
+}
+
+/* Titel iets kleiner dan standaard maar groter dan vorige versie */
+.ps-pics .p-title-block h2 {
+  font-size: clamp(1.0rem, 1.8vw, 1.4rem);
+  font-weight: 400;
+}
+
+.ps-pics .p-title-block {
+  margin-bottom: 0.8rem;
+}
+
+.ps-pics .ps-inner {
+  padding-top: 0;
+  padding-bottom: 0;
+}
+
+/* Rij: CSS-grid 3 kolommen zodat de middelste (media/grid) altijd gecentreerd is */
+.ps-pics-row {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: start;
+  gap: 0;
+}
+
+.ps-pics-spacer {
+  display: none;
+}
+
+.ps-pics-text {
+  grid-column: 1;
+  justify-self: end;
+  padding-right: 3rem;
+  min-width: 180px;
+  max-width: 320px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.ps-pics-text .p-text {
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.ps-pics-media {
+  grid-column: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  min-width: 0;
+}
+
+/* Geen transform meer: grid heeft nu echte CSS-afmetingen */
+.ps-pics-scaled {
+  /* geen transform */
+}
+
+/* Direct onder grid: instructies links, Husselen rechtsonder */
+.ps-pics-footer {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.6rem;
+  padding-left: calc(40px + 0.75rem);
+  width: calc(540px + 40px + 0.75rem);
+  max-width: 100%;
+}
+
+.ps-pics-instructions {
+  margin: 0;
+  font-size: 0.82rem;
+  line-height: 1.7;
+  color: rgba(0, 0, 0, 0.6);
+}
+
+/* Husselen: gewoon klikbaar woord, geen knop-uiterlijk */
+.ps-pics-shuffle-btn {
+  padding: 0;
+  font-size: 0.82rem;
+  font-family: inherit;
+  color: rgba(0, 0, 0, 0.55);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-decoration-color: transparent;
+  transition: color 0.2s, text-decoration-color 0.2s;
+}
+
+.ps-pics-shuffle-btn:hover:not(:disabled) {
+  color: rgba(0, 0, 0, 0.85);
+  text-decoration-color: currentColor;
+}
+
+.ps-pics-shuffle-btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.ps-pics-grid-wrap {
+  width: 540px;
+  max-width: 100%;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: flex-start;
+  align-items: flex-start;
+}
+
+.ps-pics-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 0;
+  margin: 0;
+  padding: 0;
+}
+
+/* Rijen van 3, portretcellen (3:4); rijen zo hoog als één cel */
+.ps-pics-grid-mosaic {
+  grid-template-columns: repeat(3, minmax(100px, 1fr));
+  grid-auto-rows: minmax(0, auto);
+  align-content: start;
+  max-width: 540px;
+  width: 540px;
+}
+
+/* Celverhouding = eerste foto; align-self voorkomt dat cellen uitrekken */
+.ps-pics-grid-item {
+  width: 100%;
+  height: auto;
+  aspect-ratio: var(--pics-cell-aspect, 3/4);
+  min-height: 0;
+  align-self: start;
+  overflow: hidden;
+  cursor: grab;
+  display: flex;
+  align-items: stretch;
+  justify-content: stretch;
+  background: #fff;
+}
+
+.ps-pics-grid-item-landscape,
+.ps-pics-grid-item-portrait {
+  grid-column: span 1;
+}
+
+/* Stapel: twee verticale foto's boven elkaar in één cel (zelfde breedte) */
+.ps-pics-grid-item-stack {
+  grid-column: span 1;
+  position: relative;
+}
+
+.ps-pics-stack-inner {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+}
+
+.ps-pics-stack-inner img {
+  flex: 0 0 50%;
+  width: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ps-pics-unstack-btn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.6);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  cursor: pointer;
+  z-index: 2;
+}
+
+.ps-pics-unstack-btn:hover {
+  color: #000;
+  background: #fff;
+}
+
+.ps-pics-grid-item:active {
+  cursor: grabbing;
+}
+
+.ps-pics-grid-item-dragging {
+  opacity: 0.85;
+  z-index: 1;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.ps-pics-grid-item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  pointer-events: none;
+}
+
+/* Rij: pijltje links, grid midden, pijltje rechts; vaste breedte slots voorkomt opschuiven */
+.ps-pics-nav-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.ps-pics-nav-slot {
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ps-pics-nav-row .ps-pics-grid-wrap {
+  flex: 0 0 auto;
+}
+
+/* Crossfade bij wisselen van 6 foto's: out in flow (geeft hoogte), in erbovenop */
+.ps-pics-grid-fade-wrap.is-crossfade {
+  position: relative;
+}
+
+.ps-pics-grid-fade-wrap .ps-pics-grid-layer {
+  display: flex;
+  justify-content: center;
+  transition: opacity 0.25s ease;
+}
+
+.ps-pics-grid-fade-wrap .ps-pics-grid-out {
+  opacity: 1;
+}
+
+.ps-pics-grid-fade-wrap .ps-pics-grid-out.is-out {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ps-pics-grid-fade-wrap .ps-pics-grid-in {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.ps-pics-grid-fade-wrap .ps-pics-grid-in.is-in {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Navigatie: pijltje links ‹ en rechts › */
+.ps-pics-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.7);
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.ps-pics-nav-btn:hover {
+  color: #000;
+  border-color: rgba(0, 0, 0, 0.45);
+}
+
+.ps-pics-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.ps-pics-save-order-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.85rem;
+  color: rgba(0, 0, 0, 0.7);
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.ps-pics-save-order-btn:hover {
+  color: #000;
+  border-color: rgba(0, 0, 0, 0.45);
+}
+
+/* Lightbox: vergrote foto altijd midden op scherm */
+.ps-pics-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(4px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+
+.ps-pics-lightbox.is-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.ps-pics-lightbox.is-closing {
+  opacity: 0;
+  visibility: hidden;
+}
+
+.ps-pics-lightbox-backdrop {
+  position: absolute;
+  inset: 0;
+  cursor: pointer;
+}
+
+/* Inner wrapper: pijltjes + foto naast elkaar als flex-rij */
+.ps-pics-lightbox-inner {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.75rem;
+  max-width: 95vw;
+  transform: scale(0.92);
+  opacity: 0;
+  transition: transform 0.3s ease, opacity 0.3s ease;
+}
+
+.ps-pics-lightbox.is-open .ps-pics-lightbox-inner {
+  transform: scale(1);
+  opacity: 1;
+}
+
+.ps-pics-lightbox.is-closing .ps-pics-lightbox-inner {
+  transform: scale(0.92);
+  opacity: 0;
+}
+
+.ps-pics-lightbox-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  outline: none;
+  min-width: 0;
+}
+
+.ps-pics-lightbox-content img {
+  display: block;
+  max-width: min(80vw, 900px);
+  max-height: 82vh;
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  pointer-events: none;
+  transition: opacity 0.2s ease;
+}
+
+.ps-pics-lightbox-content.is-fading img {
+  opacity: 0;
+}
+
+/* Pijltjes direct naast de foto */
+.ps-pics-lightbox-prev,
+.ps-pics-lightbox-next {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  font-size: 1.1rem;
+  line-height: 1;
+  color: rgba(0, 0, 0, 0.7);
+  background: transparent;
+  border: 1px solid rgba(0, 0, 0, 0.25);
+  border-radius: 50%;
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+}
+
+.ps-pics-lightbox-prev:hover,
+.ps-pics-lightbox-next:hover {
+  color: #000;
+  border-color: rgba(0, 0, 0, 0.45);
+}
+
+
+/* Legacy rail (kept for reference; not used with PhotoAlbum) */
+.ps-pics-rail {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 5px;
+  width: 100%;
+}
+
+/* Every photo button */
+.ps-pics-thumb {
+  flex: 0 0 auto;
+  border: none;
+  padding: 0;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+  height: 260px;
+  display: block;
+  overflow: hidden;
+  /* smooth opacity for main photos fading when a series is open */
+  transition: opacity 0.35s ease;
+}
+
+.ps-pics-thumb img {
+  display: block;
+  height: 100%;
+  width: auto;
+  pointer-events: none;
+  border-radius: 0;
+}
+
+/* ── Extra photos: always in DOM, collapsed until their album is open ─────── */
+.ps-pics-thumb-extra {
+  max-width: 0;
+  opacity: 0;
+  /* CSS transition drives both open and close in reverse — smooth reflow */
+  transition: max-width 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity   0.4s ease;
+}
+
+/* When a series is open, extras expand */
+.ps-pics-thumb-extra.ps-pics-extra-open {
+  max-width: 800px;   /* wide enough for any landscape */
+  opacity: 1;
+}
+
+/* When a series is open, other thumbs stay full opacity (no fade) */
+
+/* Delayed transition while closing (delay ≈ slide-out duration) */
+.ps-pics-rail.ps-pics-is-closing .ps-pics-thumb-main {
+  transition: opacity 0.35s ease 0.45s;
+}
+
+/* Active first photo: very subtle ring */
+.ps-pics-thumb-main-active img {
+  outline: 1px solid rgba(0, 0, 0, 0.25);
+  outline-offset: -1px;
 }
 
 .p-text {
@@ -1509,6 +2012,25 @@ body {
     max-width: 100%;
     min-width: 0;
   }
+  .ps-pics-row {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  .ps-pics-text {
+    grid-column: 1;
+    justify-self: start;
+    padding-right: 0;
+    max-width: 100%;
+  }
+  .ps-pics-media {
+    grid-column: 1;
+    align-items: center;
+    width: 100%;
+  }
+  .ps-pics-footer {
+    padding-left: calc(40px + 0.75rem);
+    width: 100%;
+  }
   .ps-tobor-row,
   .ps-nwbl-row,
   .ps-alien-media,
@@ -1577,6 +2099,21 @@ body {
     width: 100%;
     max-width: 100%;
     min-width: 0;
+  }
+  .ps-pics-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  .ps-pics-text {
+    grid-column: 1;
+    justify-self: start;
+    padding-right: 0;
+    max-width: 100%;
+  }
+  .ps-pics-media {
+    grid-column: 1;
+    align-items: center;
+    width: 100%;
   }
 }
 
